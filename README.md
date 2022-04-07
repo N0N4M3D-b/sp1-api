@@ -1,2 +1,2 @@
-# sp1-api
-DAU computer engineering sw project 1 - API
+# sp1-database
+DAU computer engineering sw project 1 - database
