@@ -1,5 +1,6 @@
 import pymysql
 from .secret import *
+from .api_util import *
 from flask import request
 from flask_restx import Resource
 from flask_restx import Namespace
@@ -7,29 +8,16 @@ from flask_restx import Namespace
 Users = Namespace('Users')
 Login = Namespace('Login')
 
-def connect_database():
-    conn = pymysql.connect(host=db_host, port=db_port, user=db_user, password=db_password, db=db, charset='utf8')
-    db_cursor = conn.cursor()
-    return conn, db_cursor
-
-def disconnect_database(conn):
-    conn.close()
-
-def argument_check(json_argument):
-    for value in json_argument.values():
-        if len(value) < 1:
-            return False
-
-    return True
-
 @Login.route('')
 class LoginApi(Resource):
     def post(self):
+        arg_types = {"app_id": str, "app_pw": str}
         try:
             json_argument = request.get_json()
             self.app_id = json_argument["app_id"]
             self.app_pw = json_argument["app_pw"]
-            if not argument_check(json_argument):
+
+            if not Argument(json_argument, arg_types).argument_check():
                 raise()
         except:
             return {"message": "invalid request argument"}, 400
@@ -54,12 +42,14 @@ class LoginApi(Resource):
 @Users.route('')
 class UserApi(Resource):
     def post(self):
+        arg_types = {"app_id": str, "app_pw": str, "app_email": str}
         try:
             json_argument = request.get_json()
             self.app_id = json_argument["app_id"]
             self.app_pw = json_argument["app_pw"]
             self.app_email = json_argument["app_email"]
-            if not argument_check(json_argument):
+            
+            if not Argument(json_argument, arg_types).argument_check():
                 raise()
         except:
             return {"message": "invalid request argument"}, 400
@@ -83,11 +73,12 @@ class UserApi(Resource):
         return {"message": "insert user success"}, 201
 
     def delete(self):
+        arg_types = {"app_id": str, "app_pw": str}
         try:
             json_argument = request.get_json()
             self.app_id = json_argument["app_id"]
             self.app_pw = json_argument["app_pw"]
-            if not argument_check(json_argument):
+            if not Argument(json_argument, arg_types).argument_check():
                 raise()
         except:
             return {"message": "invalid request argument"}, 400
@@ -103,6 +94,6 @@ class UserApi(Resource):
             conn.commit()
         except:
             disconnect_database(conn)
-            return {"message": "delete user fail"}, 400
+            return {"message": "delete user fail"}, 401
         disconnect_database(conn)
         return {"message": "delete user success"}, 200
