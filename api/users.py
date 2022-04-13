@@ -30,6 +30,7 @@ class LoginApi(Resource):
         db_cursor.execute(sql_query)
         
         if len(db_cursor.fetchall()) < 1:
+            disconnect_database(conn)
             return {"message": "auth fail"}, 404
 
         disconnect_database(conn)
@@ -37,8 +38,6 @@ class LoginApi(Resource):
         return {"message": "auth success"}, 200
 
 
-# TODO
-# * Add email regex check
 @Users.route('')
 class UserApi(Resource):
     def post(self):
