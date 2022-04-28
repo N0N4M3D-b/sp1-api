@@ -71,6 +71,7 @@ class UserApi(Resource):
         disconnect_database(conn)
         return {"message": "insert user success"}, 201
 
+
     def delete(self):
         arg_types = {"app_id": str, "app_pw": str}
         try:
@@ -97,6 +98,7 @@ class UserApi(Resource):
         disconnect_database(conn)
         return {"message": "delete user success"}, 200
 
+
     def put(self):
         arg_types = {"app_id": str, "app_pw": str, "app_email": str}
         try:
@@ -113,7 +115,7 @@ class UserApi(Resource):
 
     def modifyUser(self):
         conn, db_cursor = connect_database()
-        sql_query = f'UPDATE app_users SET app_id="{self.app_id}", app_pw=SSHA1("{self.app_pw}") WHERE app_id="{self.app_id}"'
+        sql_query = f'UPDATE app_users SET app_id="{self.app_id}", app_pw=SHA1("{self.app_pw}") WHERE app_id="{self.app_id}"'
         try:
             if not db_cursor.execute(sql_query):
                 raise()
