@@ -86,7 +86,7 @@ class UserApi(Resource):
 
     def deleteUser(self):
         conn, db_cursor = connect_database()
-        sql_query = f'DELETE FROM app_users WHERE app_id="{self.app_id}" and app_pw=SHA1("{self.app_pw}")'
+        sql_query = f'DELETE FROM app_users WHERE app_id="{self.app_id}" AND app_pw=SHA1("{self.app_pw}")'
         try:
             if not db_cursor.execute(sql_query):
                 raise()
@@ -96,3 +96,30 @@ class UserApi(Resource):
             return {"message": "delete user fail"}, 401
         disconnect_database(conn)
         return {"message": "delete user success"}, 200
+
+    def put(self):
+        arg_types = {"app_id": str, "app_pw": str, "app_email": str}
+        try:
+            json_argument = request.get_json()
+            self.app_id = json_argument["app_id"]
+            self.app_pw = json_argument["app_pw"]
+            self.app_email = json_argument["app_email"]
+            if not Argument(json_argument, arg_types).argument_check():
+                raise()
+        except:
+            return {"message": "invalid request argument"}, 400
+
+        return self.modifyUser()
+
+    def modifyUser(self):
+        conn, db_cursor = connect_database()
+        sql_query = f'UPDATE app_users SET app_id="{self.app_id}", app_pw=SSHA1("{self.app_pw}") WHERE app_id="{self.app_id}"'
+        try:
+            if not db_cursor.execute(sql_query):
+                raise()
+            conn.commit()
+        except:
+            disconnect_database(conn)
+            return {"message": "modify user info fail"}, 400
+        disconnect_database(conn)
+        return {"message": "modify user info success"}, 200
