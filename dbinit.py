@@ -12,7 +12,10 @@ class InitTable:
 
         self.conn = pymysql.connect(host=db_host, port=db_port, user=db_user, password=db_password, db=db, charset='utf8')
         self.db_cursor = self.conn.cursor()
-        self.check_user_table()
+        self.check_table('app_users', self.create_user_table)
+        self.check_table('otts', self.create_ott_table)
+        self.check_table('ott_users', self.create_ott_user_table)
+        self.check_table('ott_group', self.create_group_table)
         self.conn.commit()
         self.conn.close()
 
@@ -30,12 +33,12 @@ class InitTable:
         return sql_query
 
 
-    def check_user_table(self):
-        self.db_cursor.execute(self.select_table_query('app_users'))
+    def check_table(self, table_name, func):
+        self.db_cursor.execute(self.select_table_query(table_name))
 
         if (len(self.db_cursor.fetchall()) < 1):
-            self.create_user_table()
-            print('[*] create user table')
+            func()
+            print(f'[*] create {table_name} table')
             
 
     def create_user_table(self):
@@ -44,6 +47,44 @@ class InitTable:
                         app_id varchar(20) NOT NULL PRIMARY KEY,
                         app_pw varchar(50) NOT NULL,
                         app_email varchar(50) NOT NULL
+                    )
+                    '''
+        self.db_cursor.execute(sql_query)
+
+    
+    def create_ott_table(self):
+        sql_query = '''
+                    CREATE TABLE otts (
+                        ott varchar(20) NOT NULL PRIMARY KEY
+                    )
+                    '''
+        self.db_cursor.execute(sql_query)
+
+
+    def create_ott_user_table(self):
+        sql_query = '''
+                    CREATE TABLE ott_users (
+                        idx INT NOT NULL AUTO_INCREMENT,
+                        ott_id varchar(20) NOT NULL,
+                        ott_pw varchar(50) NOT NULL,
+                        ott varchar(20) NOT NULL,
+                        update_time DATETIME NOT NULL,
+                        PRIMARY KEY (idx),
+                        UNIQUE KEY (ott_id, ott),
+                        FOREIGN KEY (ott) REFERENCES otts (ott) ON DELETE CASCADE 
+                    )
+                    '''
+        self.db_cursor.execute(sql_query)
+
+
+    def create_group_table(self):
+        sql_query = '''
+                    CREATE TABLE ott_group (
+                        app_id varchar(20) NOT NULL,
+                        idx INT NOT NULL,
+                        PRIMARY KEY (app_id, idx),
+                        FOREIGN KEY (app_id) REFERENCES app_users (app_id) ON DELETE CASCADE,
+                        FOREIGN KEY (idx) REFERENCES ott_users (idx) ON DELETE CASCADE
                     )
                     '''
         self.db_cursor.execute(sql_query)
