@@ -25,7 +25,7 @@ class Argument():
 
     def argument_length_check(self):
         for value in self.json_argument.values():
-            if len(value) < 1:
+            if len(str(value)) < 1:
                 return False
 
         return True
