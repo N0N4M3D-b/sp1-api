@@ -16,6 +16,7 @@ class InitTable:
         self.check_table('otts', self.create_ott_table)
         self.check_table('ott_users', self.create_ott_user_table)
         self.check_table('ott_group', self.create_group_table)
+        self.init_ott_table()
         self.conn.commit()
         self.conn.close()
 
@@ -61,6 +62,18 @@ class InitTable:
         self.db_cursor.execute(sql_query)
 
 
+    def init_ott_table(self):
+        ott_service = ['netflix', 'wavve']
+
+        for service in ott_service:
+            sql_query = f'SELECT * FROM otts WHERE ott="{service}"'
+            if not self.db_cursor.execute(sql_query):
+                sql_query = f'''
+                            INSERT INTO otts VALUES ("{service}")
+                            '''
+                self.db_cursor.execute(sql_query) 
+
+
     def create_ott_user_table(self):
         sql_query = '''
                     CREATE TABLE ott_users (
@@ -68,6 +81,11 @@ class InitTable:
                         ott_id varchar(20) NOT NULL,
                         ott_pw varchar(50) NOT NULL,
                         ott varchar(20) NOT NULL,
+                        payment_type varchar(20) NOT NULL,
+                        payment_detail varchar(20) NOT NULL,
+                        payment_next DATETIME NOT NULL,
+                        membership_type INT NOT NULL,
+                        membership_cost INT NOT NULL,
                         update_time DATETIME NOT NULL,
                         PRIMARY KEY (idx),
                         UNIQUE KEY (ott_id, ott),
