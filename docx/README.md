@@ -92,7 +92,7 @@
 
 #### PUT
 > 1. Request
->> {"ott_pw": str, "payment_type": int, "payment_next": int, "membership_type": int, "membership_cost": int}
+>> {"ott_pw": str, "payment_type": int, "payment_next": int, "membership_type": int, "membership_cost": int}  
 >> {"ott_pw": str, "payment_type": int, "payment_detail": str, "payment_next": int, "membership_type": int, "membership_cost": int}
 
 payment_detail이 NULL일 경우 포함하지 않고 요청
