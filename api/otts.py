@@ -1,5 +1,7 @@
 import sys
 import pymysql
+import json
+from datetime import datetime
 from .secret import *
 from .api_util import *
 from flask import request
@@ -28,6 +30,13 @@ class OttUserAPI(Resource):
 
     def InsertOttUser(self, idx):
         conn, db_cursor = connect_database()
+
+        sql_query = f'SELECT * FROM app_users WHERE app_id="{self.app_id}"'
+        db_cursor.execute(sql_query)
+
+        if len(db_cursor.fetchall()) < 1:
+            return {"message": "invalid app user"}, 400
+
         if idx == -1:
             sql_query = f'''
                         INSERT INTO ott_users VALUES (
@@ -138,11 +147,123 @@ class OttUserAPI(Resource):
         conn.commit()
         disconnect_database(conn)
 
-@Otts.route('/info')
+@Otts.route('/info/<int:idx>')
 class OttInfoAPI(Resource):
-    def get(self):
-        pass
+    def get(self, idx):
+        data = self.GetData(idx)
+
+        if data == None:
+            return {"message": "invalid index"}, 404
+
+        member = self.GetMember(idx)
+
+        members = []
+        for mem in member:
+            mem_info = []
+            mem_info.append(mem[0])
+            mem_info.append(mem[1])
+            members.append(mem_info)
+
+        info = {
+                    "idx": data[0],
+                    "ott": data[1],
+                    "account": {
+                        "id": data[2],
+                        "pw": data[3],
+                        "payment": {
+                            "type": data[4],
+                            "detail": data[5],
+                            "next": data[6]
+                        },
+                        "membership": {
+                            "type": data[7],
+                            "cost": data[8]
+                        }
+                    },
+                    "updatetime": data[9],
+                    "members": members
+                }
 
 
-    def put(self):
-        pass
+        return {"message": "get info success", "info": info}, 200
+
+    def GetData(self, idx):
+        conn, db_cursor = connect_database()
+        sql_query = f'SELECT * FROM ott_users WHERE idx={idx}'
+        db_cursor.execute(sql_query)
+        data = db_cursor.fetchone()
+        disconnect_database(conn)
+
+        return data
+
+    def GetMember(self, idx):
+        conn, db_cursor = connect_database()
+        sql_query = f'SELECT app_id, isAdmin FROM ott_group WHERE idx={idx}'
+        db_cursor.execute(sql_query)
+        member = db_cursor.fetchall()
+        disconnect_database(conn)
+
+        return member
+
+
+    def put(self, idx):
+        arg_types = {"ott_pw": str, "payment_type": int, "payment_next": int, "membership_type": int, "membership_cost": int}
+
+        try:
+            json_argument = request.get_json()
+
+            if "payment_detail" in json_argument.keys():
+                arg_types["payment_detail"] = str
+                self.payment_detail = json_argument["payment_detail"]
+            else:
+                self.payment_detail = None
+
+            self.ott_pw = json_argument["ott_pw"]
+            self.payment_type = json_argument["payment_type"]
+            self.payment_next = json_argument["payment_next"]
+            self.membership_type = json_argument["membership_type"]
+            self.membership_cost = json_argument["membership_cost"]
+
+            if not Argument(json_argument, arg_types).argument_check():
+                raise()
+        except Exception as e:
+            print(f'{e}', flush=True)
+            return {"message": "invalid request argument"}, 400
+
+        if self.CheckIdx(idx) == False:
+            return {"message": "invalid index"}, 404
+
+        self.payment_next = datetime.fromtimestamp(self.payment_next)
+        self.update_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        self.UpdateOttAccount(idx)
+
+        return {"message": "update account info success"}, 200
+
+    def UpdateOttAccount(self, idx):
+        conn, db_cursor = connect_database()
+
+        if self.payment_detail == None:
+            sql_query = f'UPDATE ott_users SET ott_pw="{self.ott_pw}", payment_type="{self.payment_type}", payment_detail=NULL, payment_next="{self.payment_next}", membership_type={self.membership_type}, membership_cost={self.membership_cost}, update_time="{self.update_time}" WHERE idx={idx}'
+        else:
+            sql_query = f'UPDATE ott_users SET ott_pw="{self.ott_pw}", payment_type="{self.payment_type}", payment_detail="{self.payment_detail}", payment_next="{self.payment_next}", membership_type={self.membership_type}, membership_cost={self.membership_cost}, update_time="{self.update_time}" WHERE idx={idx}'
+
+        db_cursor.execute(sql_query)
+        conn.commit()
+        disconnect_database(conn)
+        
+    def CheckIdx(self, idx):
+        conn, db_cursor = connect_database()
+        sql_query = f'SELECT * FROM ott_users WHERE idx = {idx}'
+        db_cursor.execute(sql_query)
+        isValid = db_cursor.fetchone()
+        disconnect_database(conn)
+
+        if isValid == None:
+            return False
+        else:
+            return True
+
+
+
+

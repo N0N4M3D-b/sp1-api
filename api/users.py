@@ -1,4 +1,5 @@
 import pymysql
+import requests
 from .secret import *
 from .api_util import *
 from flask import request
@@ -87,6 +88,15 @@ class UserApi(Resource):
 
     def deleteUser(self):
         conn, db_cursor = connect_database()
+
+        sql_query = f'SELECT idx FROM ott_group WHERE app_id="{self.app_id}"'
+        db_cursor.execute(sql_query)
+        group_list = db_cursor.fetchall()
+
+        for group in group_list:
+            json_data = {"app_id": self.app_id, "idx": group[0]}
+            requests.delete(f'http://{app_host}:{app_port}/otts/group', json=json_data)
+
         sql_query = f'DELETE FROM app_users WHERE app_id="{self.app_id}" AND app_pw=SHA1("{self.app_pw}")'
         try:
             if not db_cursor.execute(sql_query):
