@@ -81,7 +81,7 @@ class InitTable:
                         ott varchar(20) NOT NULL,
                         ott_id varchar(20) NOT NULL,
                         ott_pw varchar(50) NOT NULL,
-                        payment_type varchar(20),
+                        payment_type INT,
                         payment_detail varchar(20),
                         payment_next DATETIME,
                         membership_type INT,
