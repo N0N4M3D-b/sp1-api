@@ -78,15 +78,16 @@ class InitTable:
         sql_query = '''
                     CREATE TABLE ott_users (
                         idx INT NOT NULL AUTO_INCREMENT,
+                        ott varchar(20) NOT NULL,
                         ott_id varchar(20) NOT NULL,
                         ott_pw varchar(50) NOT NULL,
-                        ott varchar(20) NOT NULL,
-                        payment_type varchar(20) NOT NULL,
-                        payment_detail varchar(20) NOT NULL,
-                        payment_next DATETIME NOT NULL,
-                        membership_type INT NOT NULL,
-                        membership_cost INT NOT NULL,
-                        update_time DATETIME NOT NULL,
+                        payment_type varchar(20),
+                        payment_detail varchar(20),
+                        payment_next DATETIME,
+                        membership_type INT,
+                        membership_cost INT,
+                        update_time DATETIME,
+                        member_count INT NOT NULL,
                         PRIMARY KEY (idx),
                         UNIQUE KEY (ott_id, ott),
                         FOREIGN KEY (ott) REFERENCES otts (ott) ON DELETE CASCADE 
@@ -100,6 +101,7 @@ class InitTable:
                     CREATE TABLE ott_group (
                         app_id varchar(20) NOT NULL,
                         idx INT NOT NULL,
+                        isAdmin INT NOT NULL,
                         PRIMARY KEY (app_id, idx),
                         FOREIGN KEY (app_id) REFERENCES app_users (app_id) ON DELETE CASCADE,
                         FOREIGN KEY (idx) REFERENCES ott_users (idx) ON DELETE CASCADE
