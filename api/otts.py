@@ -1,7 +1,7 @@
 import sys
 import pymysql
 import json
-from datetime import datetime
+import time
 from .secret import *
 from .api_util import *
 from flask import request
@@ -164,6 +164,8 @@ class OttInfoAPI(Resource):
             mem_info.append(mem[1])
             members.append(mem_info)
 
+        print(f"TYPE: {data[6]}, {type(data[6])}", flush=True)
+
         info = {
                     "idx": data[0],
                     "ott": data[1],
@@ -233,9 +235,7 @@ class OttInfoAPI(Resource):
         if self.CheckIdx(idx) == False:
             return {"message": "invalid index"}, 404
 
-        self.payment_next = datetime.fromtimestamp(self.payment_next)
-        self.update_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
+        self.update_time = int(time.time())
         self.UpdateOttAccount(idx)
 
         return {"message": "update account info success"}, 200
